@@ -1,5 +1,5 @@
-﻿;   Audacity: A Digital Audio Editor
-;   Audacity(R) is copyright (c) 1999-2015 Audacity Team.
+;   Audacity: A Digital Audio Editor
+;   Audacity(R) is copyright (c) 1999-2016 Audacity Team.
 ;   License: GPL v2.  See License.txt.
 ;
 ;   audacity.iss
@@ -30,6 +30,10 @@ WizardSmallImageFile=audacity_InnoWizardSmallImage.bmp
 SolidCompression=yes
 
 ; installer-related directives
+; From Inno 5.5.7, Inno defaults to disabling the Welcome page as recommended 
+; by Microsoft's desktop applications guideline, but we don't want to do that.
+DisableWelcomePage=no
+
 AppName={#AppName}
 AppVerName=Audacity {#AppVersion}
 ; Specify AppVersion as well, so it appears in the Add/Remove Programs entry. 
@@ -47,6 +51,10 @@ VersionInfoProductTextVersion={#GetFileProductVersion(AppExe)}
 VersionInfoDescription={#AppName + " " + AppVersion + " Setup"}
 VersionInfoVersion={#GetFileVersion(AppExe)}
 VersionInfoCopyright={#GetFileCopyright(AppExe)}
+
+; Don't disable the "Select Destination Location" wizard, even if 
+; Audacity is already installed.
+DisableDirPage=no
 
 ; Always warn if dir exists, because we'll overwrite previous Audacity.
 DirExistsWarning=yes
@@ -166,6 +174,7 @@ Type: files; Name: "{app}\Plug-Ins\sc4.dll"
 Type: files; Name: "{app}\Modules\mod-script-pipe.dll"
 Type: files; Name: "{app}\Modules\mod-script-pipe.exp"
 Type: files; Name: "{app}\Modules\mod-script-pipe.lib"
+Type: files; Name: "{app}\Modules\mod-nyq-bench.dll"
 
 ;get rid of the Modules dir, if it is empty
 Type: dirifempty; Name: "{app}\Modules"
@@ -256,7 +265,7 @@ Name: "he"; MessagesFile: "compiler:Languages\Hebrew.isl"
 Name: "hi"; MessagesFile: "{#Get('Hindi.islu')}"
 Name: "hr"; MessagesFile: "{#Get('Croatian.isl')}"
 Name: "hu"; MessagesFile: "compiler:Languages\Hungarian.isl"
-Name: "hy"; MessagesFile: "{#Get('Armenian.islu')}"
+Name: "hy"; MessagesFile: "compiler:Languages\Armenian.islu"
 Name: "id"; MessagesFile: "{#Get('Indonesian.isl')}"
 Name: "it"; MessagesFile: "compiler:Languages\Italian.isl"
 Name: "ja"; MessagesFile: "compiler:Languages\Japanese.isl"

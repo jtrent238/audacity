@@ -82,7 +82,7 @@ const int sliderFontSize = 12;
 // TipPanel
 //
 
-class TipPanel : public wxPopupWindow
+class TipPanel final : public wxPopupWindow
 {
  public:
    TipPanel(wxWindow *parent, const wxString & label);
@@ -202,7 +202,7 @@ SliderDialog::SliderDialog(wxWindow * parent, wxWindowID id,
                                15);
       mTextCtrl->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
 
-      mSlider = new ASlider(this,
+      mSlider = safenew ASlider(this,
                             wxID_ANY,
                             title,
                             wxDefaultPosition,
@@ -342,7 +342,7 @@ static const wxPoint2DDouble disabledRightEnd[] =
 
 // Construct customizable slider
 LWSlider::LWSlider(wxWindow * parent,
-                     wxString name,
+                     const wxString &name,
                      const wxPoint &pos,
                      const wxSize &size,
                      float minValue,
@@ -412,7 +412,7 @@ void LWSlider::SetStyle(int style)
 
 // Construct predefined slider
 LWSlider::LWSlider(wxWindow *parent,
-                   wxString name,
+                   const wxString &name,
                    const wxPoint &pos,
                    const wxSize &size,
                    int style,
@@ -475,7 +475,7 @@ LWSlider::LWSlider(wxWindow *parent,
 }
 
 void LWSlider::Init(wxWindow * parent,
-                    wxString name,
+                    const wxString &name,
                     const wxPoint &pos,
                     const wxSize &size,
                     float minValue,
@@ -1392,8 +1392,8 @@ void LWSlider::SetSpeed(float speed)
    mSpeed = speed;
 }
 
-// Given the mouse slider coordinate in fromPos, compute the new value
-// of the slider when clicking to set a new position.
+// Given the mouse slider coordinate in fromPos, compute the NEW value
+// of the slider when clicking to set a NEW position.
 float LWSlider::ClickPositionToValue(int fromPos, bool shiftDown)
 {
    int nSpan;
@@ -1436,7 +1436,7 @@ float LWSlider::ClickPositionToValue(int fromPos, bool shiftDown)
    return val;
 }
 
-// Given the mouse slider coordinate in fromPos, compute the new value
+// Given the mouse slider coordinate in fromPos, compute the NEW value
 // of the slider during a drag.
 float LWSlider::DragPositionToValue(int fromPos, bool shiftDown)
 {
@@ -1582,7 +1582,7 @@ END_EVENT_TABLE()
 
 ASlider::ASlider( wxWindow * parent,
                   wxWindowID id,
-                  wxString name,
+                  const wxString &name,
                   const wxPoint & pos,
                   const wxSize & size,
                   int style,
@@ -1611,13 +1611,15 @@ ASlider::ASlider( wxWindow * parent,
    mTimer.SetOwner(this);
 
 #if wxUSE_ACCESSIBILITY
-   SetAccessible( new ASliderAx( this ) );
+   SetAccessible( safenew ASliderAx( this ) );
 #endif
 }
 
 
 ASlider::~ASlider()
 {
+   if(HasCapture())
+      ReleaseMouse();
    delete mLWSlider;
 }
 

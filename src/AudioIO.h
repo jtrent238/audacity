@@ -18,11 +18,18 @@
 #include "Experimental.h"
 
 #ifdef USE_MIDI
+
 #ifdef EXPERIMENTAL_MIDI_OUT
 #include "portmidi.h"
 #include "porttime.h"
 #include "allegro.h"
+
+#include <vector>
+class NoteTrack;
+using NoteTrackArray = std::vector < NoteTrack* >;
+
 #endif // EXPERIMENTAL_MIDI_OUT
+
 #endif // USE_MIDI
 
 #if USE_PORTMIXER
@@ -127,7 +134,7 @@ struct AudioIOStartStreamOptions
 #endif
 };
 
-class AUDACITY_DLL_API AudioIO {
+class AUDACITY_DLL_API AudioIO final {
 
  public:
    AudioIO();
@@ -152,9 +159,9 @@ class AUDACITY_DLL_API AudioIO {
     * If successful, returns a token identifying this particular stream
     * instance.  For use with IsStreamActive() below */
 
-   int StartStream(WaveTrackArray playbackTracks, WaveTrackArray captureTracks,
+   int StartStream(const WaveTrackArray &playbackTracks, const WaveTrackArray &captureTracks,
 #ifdef EXPERIMENTAL_MIDI_OUT
-                   NoteTrackArray midiTracks,
+                   const NoteTrackArray &midiTracks,
 #endif
                    double sampleRate, double t0, double t1,
                    const AudioIOStartStreamOptions &options =
@@ -175,7 +182,7 @@ class AUDACITY_DLL_API AudioIO {
 
    static double GetMaxScrubSpeed() { return 32.0; } // Is five octaves enough for your amusement?
    static double GetMinScrubSpeed() { return 0.01; }
-   /** \brief enqueue a new end time, using the last end as the new start,
+   /** \brief enqueue a NEW end time, using the last end as the new start,
    * to be played over the same duration, as between this and the last
    * enqueuing (or the starting of the stream).  Except, we do not exceed maximum
    * scrub speed, so may need to adjust either the start or the end.
@@ -188,8 +195,8 @@ class AUDACITY_DLL_API AudioIO {
    */
    bool EnqueueScrubByPosition(double endTime, double maxSpeed, bool maySkip);
 
-   /** \brief enqueue a new positive or negative scrubbing speed,
-   * using the last end as the new start,
+   /** \brief enqueue a NEW positive or negative scrubbing speed,
+   * using the last end as the NEW start,
    * to be played over the same duration, as between this and the last
    * enqueueing (or the starting of the stream).  Except, we do not exceed maximum
    * scrub speed, so may need to adjust either the start or the end.
@@ -201,6 +208,10 @@ class AUDACITY_DLL_API AudioIO {
    * Return true if some work was really enqueued.
    */
    bool EnqueueScrubBySignedSpeed(double speed, double maxSpeed, bool maySkip);
+
+   /** \brief return the ending time of the last enqueued scrub interval.
+   */
+   double GetLastTimeInScrubQueue() const;
 #endif
 
    /** \brief  Returns true if audio i/o is busy starting, stopping, playing,
@@ -214,11 +225,12 @@ class AUDACITY_DLL_API AudioIO {
     *
     * Doesn't return true if the device has been closed but some disk i/o or
     * cleanup is still going on. If you want to know if it's safe to start a
-    * new stream, use IsBusy() */
+    * NEW stream, use IsBusy() */
    bool IsStreamActive();
    bool IsStreamActive(int token);
 
    wxLongLong GetLastPlaybackTime() const { return mLastPlaybackTimeMillis; }
+   AudacityProject *GetOwningProject() const { return mOwningProject; }
 
 #ifdef EXPERIMENTAL_MIDI_OUT
    /** \brief Compute the current PortMidi timestamp time.
@@ -388,7 +400,7 @@ class AUDACITY_DLL_API AudioIO {
    /** \brief Ensure selected device names are valid
     *
     */
-   static bool ValidateDeviceNames(wxString play, wxString rec);
+   static bool ValidateDeviceNames(const wxString &play, const wxString &rec);
 
    /** \brief Function to automatically set an acceptable volume
     *
@@ -475,7 +487,7 @@ private:
     * and would be neater done once. If the device isn't found, return the
     * default device index.
     */
-   static int getRecordDevIndex(wxString devName = wxT(""));
+   static int getRecordDevIndex(const wxString &devName = wxEmptyString);
    /** \brief get the index of the device selected in the preferences.
     *
     * If the device isn't found, returns -1
@@ -491,7 +503,7 @@ private:
     * and would be neater done once. If the device isn't found, return the
     * default device index.
     */
-   static int getPlayDevIndex(wxString devName = wxT(""));
+   static int getPlayDevIndex(const wxString &devName = wxEmptyString);
 
    /** \brief Array of audio sample rates to try to use
     *
@@ -638,7 +650,7 @@ private:
    bool                mInputMixerWorks;
    float               mMixerOutputVol;
 
-   enum {
+   volatile enum {
       PLAY_STRAIGHT,
       PLAY_LOOPED,
 #ifdef EXPERIMENTAL_SCRUBBING_SUPPORT
@@ -648,8 +660,7 @@ private:
    double              mCutPreviewGapStart;
    double              mCutPreviewGapLen;
 
-   samplePtr mSilentBuf;
-   sampleCount mLastSilentBufSize;
+   GrowableSampleBuffer mSilentBuf;
 
    AudioIOListener*    mListener;
 

@@ -42,6 +42,7 @@
 #include "../images/Arrow.xpm"
 #include "../images/Empty9x16.xpm"
 #include "BatchCommands.h"
+#include "Track.h"
 #include "UndoManager.h"
 
 #include "Theme.h"
@@ -152,7 +153,7 @@ void BatchProcessDialog::OnApplyToProject(wxCommandEvent & WXUNUSED(event))
    }
    wxString name = mChains->GetItemText(item);
 
-   wxDialog * pD = new wxDialog(this, wxID_ANY, GetTitle());
+   wxDialog * pD = safenew wxDialog(this, wxID_ANY, GetTitle());
    pD->SetName(pD->GetTitle());
    ShuttleGui S(pD, eIsCreating);
 
@@ -188,16 +189,17 @@ void BatchProcessDialog::OnApplyToProject(wxCommandEvent & WXUNUSED(event))
 
    // The disabler must get deleted before the EndModal() call.  Otherwise,
    // the menus on OSX will remain disabled.
-   wxWindowDisabler *wd = new wxWindowDisabler(pD);
-   bool success = mBatchCommands.ApplyChain();
-   delete wd;
+   bool success;
+   {
+      wxWindowDisabler wd(pD);
+      success = mBatchCommands.ApplyChain();
+   }
 
    if (!success) {
       Show();
       return;
    }
 
-   wxWindow * pWnd = this->GetParent();
 #if !defined(__WXMAC__)
    // Under Linux an EndModal() here crashes (Bug #1221).
    // But sending a close message instead is OK.
@@ -208,7 +210,9 @@ void BatchProcessDialog::OnApplyToProject(wxCommandEvent & WXUNUSED(event))
 #else
    EndModal(wxID_OK);
 #endif
-   pWnd->SetFocus();
+
+   // Raise myself again, and the parent window with me
+   Show();
 }
 
 void BatchProcessDialog::OnApplyToFiles(wxCommandEvent & WXUNUSED(event))
@@ -238,10 +242,9 @@ void BatchProcessDialog::OnApplyToFiles(wxCommandEvent & WXUNUSED(event))
    wxString filter;
    wxString all;
 
-   l.DeleteContents(true);
    Importer::Get().GetSupportedImportFormats(&l);
-   for (FormatList::compatibility_iterator n = l.GetFirst(); n; n = n->GetNext()) {
-      Format *f = n->GetData();
+   for (const auto &format : l) {
+      const Format *f = &format;
 
       wxString newfilter = f->formatName + wxT("|");
       for (size_t i = 0; i < f->formatExtensions.size(); i++) {
@@ -291,7 +294,7 @@ void BatchProcessDialog::OnApplyToFiles(wxCommandEvent & WXUNUSED(event))
 
    files.Sort();
 
-   wxDialog * pD = new wxDialog(this, wxID_ANY, GetTitle());
+   wxDialog * pD = safenew wxDialog(this, wxID_ANY, GetTitle());
    pD->SetName(pD->GetTitle());
    ShuttleGui S(pD, eIsCreating);
 
@@ -368,7 +371,6 @@ void BatchProcessDialog::OnApplyToFiles(wxCommandEvent & WXUNUSED(event))
    }
    project->OnRemoveTracks();
 
-   wxWindow * pWnd = this->GetParent();
    // Under Linux an EndModal() here crashes (Bug #1221).
    // But sending a close message instead is OK.
 #if !defined(__WXMAC__)
@@ -379,7 +381,9 @@ void BatchProcessDialog::OnApplyToFiles(wxCommandEvent & WXUNUSED(event))
 #else
    EndModal(wxID_OK);
 #endif 
-   pWnd->SetFocus();
+
+   // Raise myself again, and the parent window with me
+   Show();
 }
 
 void BatchProcessDialog::OnCancel(wxCommandEvent & WXUNUSED(event))

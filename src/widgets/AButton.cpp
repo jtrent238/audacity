@@ -48,7 +48,7 @@ END_EVENT_TABLE()
 
 // LL:  An alternative to this might be to just use the wxEVT_KILL_FOCUS
 //      or wxEVT_ACTIVATE events.
-class AButton::Listener
+class AButton::Listener final
    : public wxEvtHandler
 {
 public:
@@ -187,6 +187,8 @@ AButton::AButton(wxWindow * parent,
 
 AButton::~AButton()
 {
+   if(HasCapture())
+      ReleaseMouse();
 }
 
 void AButton::Init(wxWindow * parent,
@@ -231,7 +233,7 @@ void AButton::Init(wxWindow * parent,
 
 #if wxUSE_ACCESSIBILITY
    SetName( wxT("") );
-   SetAccessible(new AButtonAx(this));
+   SetAccessible(safenew AButtonAx(this));
 #endif
 }
 
@@ -280,7 +282,7 @@ void AButton::SetAlternateIdx(unsigned idx)
 
 void AButton::FollowModifierKeys()
 {
-   if(!mListener.get())
+   if(!mListener)
       mListener.reset(new Listener(this));
 }
 
@@ -405,6 +407,8 @@ void AButton::OnMouseEvent(wxMouseEvent & event)
    if (mEnabled && event.IsButton()) {
       if (event.ButtonIsDown(wxMOUSE_BTN_ANY)) {
          mIsClicking = true;
+         if (event.ButtonDClick())
+            mIsDoubleClicked = true;
          if( !HasCapture() )
             CaptureMouse();
       }
@@ -450,6 +454,8 @@ void AButton::OnMouseEvent(wxMouseEvent & event)
          GetActiveProject()->TP_DisplayStatusMessage(wxT(""));
       }
    }
+   else
+      event.Skip();
 }
 
 void AButton::OnCaptureLost(wxMouseCaptureLostEvent & WXUNUSED(event))

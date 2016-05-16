@@ -61,16 +61,18 @@ MSVC++ STEP 2:  Build wxWidgets
    "C\wxWidgets-3.0.2\build\msw\wx_dll.sln" instead of wx_dll.dsw.
 
 
-2.2. We have patched wxWidgets with three patches.  You should apply all 
-   three.  You can do this in one step by copying the folder
-     "audacity\win\wxWidgets_additions\wxWidgets-3.02\"
+2.2. We have patched wxWidgets with four patches.  You should apply all 
+   four.  You can do this in one step by copying the folder
+     "audacity\win\wxWidgets_additions\wxWidgets-3.0.2\"
    over your: 
      "C:\wxWidgets-3.0.2\"
-   This applies the three patches.
-      1: accessibility.       Enables accessibility features.
-                              Less diagnostics in release builds.
-      2: changeset_14f05...   Allows disabling HiDPI 'awareness'.
-      3: changeset_0797a...   Fix bug in accessibility.
+   This applies the four patches.
+      1: accessibility.diff	Enables accessibility features.
+            			Less diagnostics in release builds.
+      2: changeset_14f05...	Allows disabling HiDPI 'awareness'.
+      3: changeset_0797a...	Fix bug in accessibility.
+      4: fix_rename.diff	Workaround for failures in the wxWidgets
+      				wxRenameFile function.
    The 'less diagnostics' in patch 1 gives the same level of diagnostics as
    we had with wxWidgets 2.8.12.  We found that some diagnostics in release
    builds that came in with wx 3.0.2 were causing us more problems than they 
@@ -91,20 +93,9 @@ MSVC++ STEP 2:  Build wxWidgets
    
 2.3. Build wxWidgets for all configurations of Audacity that you want.
 
-   With Visual Studio 2013 C++ and wxWidgets 3.0.2, 
-   you will get an error for a missing pbt.h header. 
-   You can (apparently safely) comment that out. 
-   In audacity-src\win\wxWidgets_additions, we have a copy of 
-   the file with this change already made. 
-   As above, you may want to save the original by renaming 
-   "C:\wxWidgets-3.0.2\src\msw\window.cpp" to 
-   "C:\wxWidgets-3.0.2\src\msw\window.cpp.bak". 
-   Then copy "audacity-src\win\wxWidgets_additions\window.cpp" to 
-   "C:\wxWidgets-3.0.2\src\msw\window.cpp".
-   
-   * Use the "DLL Unicode Release" configuration to use in a 
+   * Use the "DLL Release" configuration to use in a 
      "Release" version of Audacity.
-   * Build "DLL Unicode Debug" configuration to use in a
+   * Build "DLL Debug" configuration to use in a
      "Debug" version of Audacity.
 
    See "MSVC++ STEP 6:  Build Audacity" for the differences
@@ -142,12 +133,11 @@ MSVC++ STEP 2:  Build wxWidgets
 
 
 ------------------------------------------------------------------------
-MSVC++ STEP 3:  Download and Install Audacity
+MSVC++ STEP 3:  Download source code for Audacity
 ------------------------------------------------------------------------
 
-To check out the latest source code from SVN, see the instructions at 
-"http://audacity.sourceforge.net/community/developers". 
-
+Checkout the latest Audacity code from our GitHub repository 
+at https://github.com/audacity/audacity/ (see GitHub for help).
 
 ------------------------------------------------------------------------
 MSVC++ STEP 4:  Set wxWidgets location for Audacity
@@ -209,9 +199,10 @@ and re-build the "help" project.
 5.2. To support languages other than English in your build of Audacity,
 you must enable and build the optional "locale" project. This is 
 required for a full release. You will need to obtain msgfmt.exe from
-https://sourceforge.net/projects/gettext/ . Add the location of 
-the directory containing msgfmt.exe to your Path environment variable. 
-Alternatively, put msgfmt.exe somewhere already in the Path, 
+https://sourceforge.net/projects/cppcms/files/boost_locale/gettext_for_windows/
+ Add the location of the directory containing msgfmt.exe to your Path 
+environment variable. Alternatively, put msgfmt.exe somewhere already in the 
+Path, 
 e.g., C:\Windows.
 
 
@@ -231,7 +222,7 @@ than standard WMME. Unlike WMME, not all soundcard drivers support it.
 Because ASIO is a proprietary, closed standard, we (or any third party)
 cannot distribute its SDK. That means we cannot distribute builds of
 Audacity that support ASIO, because Audacity is licensed under the GPL 
-(http://audacity.sourceforge.net/about/license), which requires we
+(http://audacityteam.org/about/license), which requires we
 distribute all source code. 
 
 So, although you can build your own copies of Audacity with 
@@ -438,7 +429,7 @@ Cygwin STEP 1:  Installing Cygwin
 Cygwin STEP 2:  Download and install wxWidgets
 ---------------------------------------
 
-1.  Go to http://www.wxwidgets.org/ and download wxWidgets v2.8.12 or greater.  Make
+1.  Go to http://www.wxwidgets.org/ and download wxWidgets v3.0.2 or greater.  Make
 sure you download the "wxAll" package that contains source code for all ports.  The
 Win32 port will not work for compiling Audacity, since it was compiled and installed
 to work with MS Visual C++.
@@ -460,12 +451,13 @@ you will have wxWidgets installed in your Cygwin installation!
 Cygwin STEP 3:  Download Audacity
 ---------------------------------
 
-1.  Go to http://audacity.sourceforge.net/ and download the Audacity source distribution.
-Cygwin is currently experimental in the 1.2 branch and SVN head, but you must have at least
-Audacity v1.2.0 sources.
-
-2.  From a cygwin prompt, go to the tarball that you downloaded and use a command like
-'tar -xzvf (audacity tarball)' to open it.
+Either use Git, with a command like 
+   git clone https://github.com/audacity/audacity
+to get a local copy of our repository.
+OR fetch the tarball (link is at http://audacityteam.org/download/source) and
+then from a cygwin prompt, use a command like 
+   'tar -xzvf (audacity tarball)' 
+to open it.
 
 
 -----------------------------------------
